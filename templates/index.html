@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF BOT Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+<body>
+    <div class="chatbox">
+        <div class="messages" id="messagesContainer">
+            <div id="placeholder" class="placeholder">무엇을 도와드릴까요?</div>
+        </div>
+
+        <div class="input-area">
+            <button id="uploadButton" class="circle-upload-btn" title="PDF 업로드">
+                +
+            </button>
+            <input
+                type="file"
+                id="pdfInput"
+                name="files"
+                multiple
+                accept=".pdf"
+                style="display:none"
+            />
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="PDF BOT에게 물어보세요"
+            />
+            <button id="sendButton">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const placeholder = document.getElementById('placeholder');
+        const uploadButton = document.getElementById('uploadButton');
+        const pdfInput = document.getElementById('pdfInput');
+
+        // 메시지 저장 및 불러오기
+        const STORAGE_KEY = 'messages';
+
+        function saveMessages(messages) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        }
+
+        function loadMessages() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function renderMessages(messages) {
+            messagesContainer.innerHTML = '';
+            if (messages.length === 0) {
+                messagesContainer.appendChild(placeholder);
+                return;
+            }
+            messages.forEach(({ type, text }) => {
+                const div = document.createElement('div');
+                div.className = `message ${type}`;
+                div.innerHTML = text;
+                messagesContainer.appendChild(div);
+            });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            const messages = loadMessages();
+            const userMessage = { type: 'user', text };
+            messages.push(userMessage);
+            renderMessages(messages);
+            saveMessages(messages);
+            messageInput.value = '';
+
+            // 서버에 질문 전송
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: text })
+                });
+                const data = await res.json();
+                const botResponse = {
+                    type: 'bot',
+                    text: data.success ? data.response : (data.message || '오류가 발생했습니다.')
+                };
+                messages.push(botResponse);
+                saveMessages(messages);
+                renderMessages(messages);
+            } catch (e) {
+                const botResponse = { type: 'bot', text: '서버와의 통신 중 오류가 발생했습니다.' };
+                messages.push(botResponse);
+                saveMessages(messages);
+                renderMessages(messages);
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // PDF 업로드 버튼 동작
+        uploadButton.addEventListener('click', () => {
+            pdfInput.click();
+        });
+
+        pdfInput.addEventListener('change', async function() {
+            if (!pdfInput.files.length) return;
+            const formData = new FormData();
+            for (const file of pdfInput.files) {
+                formData.append('files', file);
+            }
+            const messages = loadMessages();
+            const uploadingMsg = { type: 'bot', text: 'PDF 업로드 및 처리 중입니다...' };
+            messages.push(uploadingMsg);
+            renderMessages(messages);
+            saveMessages(messages);
+
+            try {
+                const res = await fetch('/upload_pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                const resultMsg = {
+                    type: 'bot',
+                    text: data.message || (data.success ? 'PDF 업로드 완료!' : 'PDF 업로드 실패')
+                };
+                messages.push(resultMsg);
+                saveMessages(messages);
+                renderMessages(messages);
+            } catch (e) {
+                const errorMsg = { type: 'bot', text: 'PDF 업로드 중 오류가 발생했습니다.' };
+                messages.push(errorMsg);
+                saveMessages(messages);
+                renderMessages(messages);
+            }
+            pdfInput.value = '';
+        });
+
+        // 초기 메시지 렌더링
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMessages(loadMessages());
+        });
+    </script>
+</body>
+</html>

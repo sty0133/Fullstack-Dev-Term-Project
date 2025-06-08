@@ -1,0 +1,116 @@
+.chatbox {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 800px; /* ChatBox의 최대 너비 고정 */
+  margin: 0 auto; /* 중앙 정렬 */
+}
+
+.messages {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  min-height: 0;
+  position: relative;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.messages::-webkit-scrollbar {
+  display: none; /* Chrome, Safari에서 스크롤바 숨기기 */
+}
+
+.placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(0, 0, 0, 0.272); /* 반투명 상태 */
+  font-size: 2rem;
+  text-align: center;
+  user-select: none; /* 텍스트 드래그 방지 */
+}
+
+.message {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  overflow-y: auto;
+  width: fit-content;
+  word-wrap: break-word; /* 긴 단어를 줄바꿈 */
+  animation: slide-up 0.3s ease-out; /* 애니메이션 추가 */
+}
+
+.message.user {
+  align-self: flex-end;
+  background: #dceeff;
+  margin-left: auto;
+  max-width: 40%;
+}
+
+.message.bot {
+  align-self: flex-start; /* 왼쪽 정렬 */
+  background: #e3e3e3;
+  margin-right: auto; /* 오른쪽 여백 자동 */
+  max-width: 60%;
+}
+
+.input-area {
+  display: flex;
+  padding: 0.8rem;
+  justify-content: center;
+  align-items: center;
+}
+
+input {
+  flex: 1;
+  border: none;
+  padding: 0.5rem;
+  padding-left: 1.5rem; /* 텍스트 입력 시작 위치를 radius 끝나는 부분으로 설정 */
+  padding-right: 1.5rem; /* 텍스트 입력 끝 위치를 radius 끝나는 부분으로 설정 */
+  border-radius: 60px;
+  background: #f0f0f0;
+  margin-right: 0.5rem;
+  font-size: 1rem;
+  max-width: 70%;
+  flex-shrink: 0;
+}
+
+button {
+  background: none;
+  border: none;
+  font-size: 1rem;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.circle-upload-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #222;
+  background: #fff;
+  color: #222;
+  font-size: 1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 0.5rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.circle-upload-btn:hover {
+  background: #222;
+  color: #fff;
+}

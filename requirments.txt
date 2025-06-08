@@ -1,0 +1,8 @@
+flask
+flask-cors
+python-dotenv
+pymongo
+openai
+faiss-cpu
+numpy
+google-cloud-vision
